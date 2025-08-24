@@ -15,33 +15,31 @@ export default class DefaultTemplatePlugin extends Plugin {
 		await this.loadSettings();
 		this.registerEvent(
 			this.app.vault.on('create', async (file) => {
-				if (file instanceof TFile && file.extension === 'md') {
-					if (!this.settings.defaultTemplate) {
-						new Notice('Default Template: No template configured. Go to Settings → Default Template to select one.');
-						return;
-					}
-					const content = await this.app.vault.read(file);
-					if (content.trim().length === 0) {
-						const templateFile = this.app.vault.getAbstractFileByPath(this.settings.defaultTemplate);
-						if (templateFile instanceof TFile) {
-							try {
-								const templateContent = await this.app.vault.read(templateFile);
-								const processedContent = templateContent
-									.replace(/\{\{date(?::([^}]+))?\}\}/g, (match, format) => {
-										return format ? moment().format(format) : moment().format('YYYY-MM-DD');
-									})
-									.replace(/\{\{time(?::([^}]+))?\}\}/g, (match, format) => {
-										return format ? moment().format(format) : moment().format('HH:mm');
-									})
-									.replace(/\{\{title\}\}/g, file.basename);
-								await this.app.vault.modify(file, processedContent);
-							} catch (error) {
-								new Notice(`Default Template: Template file "${this.settings.defaultTemplate}" not found or cannot be read.`);
-							}
-						} else {
-							new Notice(`Default Template: Template file "${this.settings.defaultTemplate}" not found. Please select a new template.`);
-						}
-					}
+				if (!(file instanceof TFile) || file.extension !== 'md') return;
+				if (!this.settings.defaultTemplate) {
+					new Notice('Default Template: No template configured. Go to Settings → Default Template to select one.');
+					return;
+				}
+				const content = await this.app.vault.read(file);
+				if (content.trim().length !== 0) return;
+				const templateFile = this.app.vault.getAbstractFileByPath(this.settings.defaultTemplate);
+				if (!(templateFile instanceof TFile)) {
+					new Notice(`Default Template: Template file "${this.settings.defaultTemplate}" not found. Please select a new template.`);
+					return;
+				}
+				try {
+					const templateContent = await this.app.vault.read(templateFile);
+					const processedContent = templateContent
+						.replace(/\{\{date(?::([^}]+))?\}\}/g, (match, format) => {
+							return format ? moment().format(format) : moment().format('YYYY-MM-DD');
+						})
+						.replace(/\{\{time(?::([^}]+))?\}\}/g, (match, format) => {
+							return format ? moment().format(format) : moment().format('HH:mm');
+						})
+						.replace(/\{\{title\}\}/g, file.basename);
+					await this.app.vault.modify(file, processedContent);
+				} catch (error) {
+					new Notice(`Default Template: Template file "${this.settings.defaultTemplate}" not found or cannot be read.`);
 				}
 			})
 		);
