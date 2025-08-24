@@ -1,50 +1,23 @@
 # Default Template Plugin
 
-Automatically apply templates to new notes with user-configurable template selection.
+A minimal plugin that automatically applies a default template to new empty notes.
 
-## Features
+## What it does
 
-- **Auto-apply templates**: Automatically apply a default template to new empty notes
-- **Template selection**: Choose templates from your template folder using a fuzzy search modal
-- **Template variables**: Support for `{{date}}`, `{{time}}`, `{{datetime}}`, `{{title}}` variables
-- **Multiple commands**: Create notes with templates, set default templates, apply templates to current notes
-- **Configurable settings**: Set template folder, toggle auto-apply, and manage template variables
+1. **Select a template file**: Choose any markdown file in your vault as your default template
+2. **Auto-apply to new notes**: When you create a new note, if it's empty, the template content is automatically applied
+3. **That's it**: No commands, no complex settings, just one simple function
 
-## Commands
+## How to use
 
-- `Create new note with template`: Opens a template selector and creates a new note with the chosen template
-- `Set default template`: Choose a template to be automatically applied to new empty notes
-- `Apply template to current note`: Apply a template to the currently active note
+1. **Enable the plugin** in Obsidian's Community Plugins settings
+2. **Go to plugin settings** and click "Select template"
+3. **Choose any markdown file** from your vault as your default template
+4. **Create new notes** - if they're empty, your template will be automatically applied
 
-## Settings
+## No template selected?
 
-- **Template folder**: Specify the folder containing your templates (default: "Templates")
-- **Auto-apply default template**: Toggle automatic application of default template to new files
-- **Process template variables**: Enable/disable template variable replacement
-- **Default template**: Set a template to be used automatically
-
-## Template Variables
-
-The plugin supports the following template variables:
-
-- `{{date}}`: Current date (YYYY-MM-DD)
-- `{{time}}`: Current time (HH:MM:SS)
-- `{{datetime}}`: Current datetime (ISO format)
-- `{{title}}`: Placeholder for note title
-
-## Installation
-
-1. Copy the plugin files to your vault's `.obsidian/plugins/obsidian-default-template/` directory
-2. Enable the plugin in Obsidian's Community Plugins settings
-3. Configure your template folder in the plugin settings
-
-## Usage
-
-1. Create templates in your designated template folder
-2. Use the "Set default template" command to choose your default template
-3. Enable "Auto-apply default template" in settings
-4. New empty notes will automatically receive your default template
-5. Use "Create new note with template" for manual template selection
+If you haven't selected a default template, the plugin does nothing. It won't interfere with your workflow.
 
 ## First time developing plugins?
 
