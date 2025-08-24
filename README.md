@@ -75,7 +75,7 @@ Created on 2024-01-15 at 14:30
 
 ### Option 1: BRAT (Recommended)
 1. Install [BRAT plugin](https://github.com/TfTHacker/obsidian42-brat)
-2. In BRAT settings, add repository: `raeperd/obsidian-default-template`
+2. In BRAT settings, add repository: `https://github.com/raeperd/obsidian-default-template`
 3. Enable the plugin in Settings → Community Plugins
 
 ### Option 2: Manual Installation
