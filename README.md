@@ -22,26 +22,33 @@
 
 ## Template Variables
 
-**Supports official Obsidian template variables:**
+**Supports official Obsidian template variables with full format string support:**
 
 - `{{title}}` → `My New Note` (filename)
-- `{{date}}` → `2024-01-15` (YYYY-MM-DD)
-- `{{time}}` → `14:30` (HH:mm)
+- `{{date}}` → `2024-01-15` (default: YYYY-MM-DD)
+- `{{time}}` → `14:30` (default: HH:mm)
 
-**No format strings** (like `{{date:YYYY-MM-DD}}`) in this minimal version.
+**Format strings supported:**
+- `{{date:YYYY-MM-DD}}` → `2024-01-15`
+- `{{date:dddd, MMMM Do YYYY}}` → `Monday, January 15th 2024`
+- `{{time:HH:mm:ss}}` → `14:30:25`
+- `{{time:h:mm A}}` → `2:30 PM`
+
+Uses [Moment.js format tokens](https://momentjs.com/docs/#/displaying/format/) - same as Obsidian's official Templates plugin.
 
 ### Example Template
 
 Create a template file with content like this:
 ```markdown
 ---
-created: {{date}}
-time: {{time}}
+created: {{date:YYYY-MM-DD}}
+day: {{date:dddd}}
+time: {{time:h:mm A}}
 ---
 
 # {{title}}
 
-Created on {{date}} at {{time}}
+Created on {{date:MMMM Do, YYYY}} at {{time:HH:mm}}
 
 ## Notes
 
@@ -51,12 +58,13 @@ When applied to a new note named "Meeting Notes", this becomes:
 ```markdown
 ---
 created: 2024-01-15
-time: 14:30
+day: Monday  
+time: 2:30 PM
 ---
 
 # Meeting Notes
 
-Created on 2024-01-15 at 14:30
+Created on January 15th, 2024 at 14:30
 
 ## Notes
 
