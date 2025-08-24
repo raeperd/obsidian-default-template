@@ -11,13 +11,13 @@ A minimal plugin that automatically applies a default template to new empty note
 
 ## Template Variables
 
-The plugin supports these template variables in your template files:
+The plugin supports these template variables (matching Obsidian's official Templates plugin):
 
-- `{{date}}`: Current date (YYYY-MM-DD) → `2024-01-15`
-- `{{time}}`: Current time (HH:MM:SS) → `14:30:25`
-- `{{datetime}}`: Current datetime (ISO format) → `2024-01-15T14:30:25.123Z`
-- `{{title}}`: The filename of the new note → `My New Note`
-- `{{filename}}`: Same as title, the filename → `My New Note`
+- `{{title}}`: Title of the active note → `My New Note`
+- `{{date}}`: Today's date (YYYY-MM-DD) → `2024-01-15`
+- `{{time}}`: Current time (HH:mm) → `14:30`
+
+> **Note**: Format strings like `{{date:YYYY-MM-DD}}` are not supported in this minimal version.
 
 ### Example Template
 
@@ -25,12 +25,12 @@ Create a template file with content like this:
 ```markdown
 ---
 created: {{date}}
-modified: {{date}}
+time: {{time}}
 ---
 
 # {{title}}
 
-Created on {{datetime}}
+Created on {{date}} at {{time}}
 
 ## Notes
 
@@ -40,12 +40,12 @@ When applied to a new note named "Meeting Notes", this becomes:
 ```markdown
 ---
 created: 2024-01-15
-modified: 2024-01-15
+time: 14:30
 ---
 
 # Meeting Notes
 
-Created on 2024-01-15T14:30:25.123Z
+Created on 2024-01-15 at 14:30
 
 ## Notes
 
