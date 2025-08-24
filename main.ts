@@ -14,9 +14,27 @@ export default class DefaultTemplatePlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 		this.registerEvent(
-			this.app.vault.on('create', (file) => {
+			this.app.vault.on('create', async (file) => {
 				if (file instanceof TFile && file.extension === 'md') {
-					this.maybeApplyDefaultTemplate(file);
+					if (!this.settings.defaultTemplate) {
+						new Notice('Default Template: No template configured. Go to Settings → Default Template to select one.');
+						return;
+					}
+					const content = await this.app.vault.read(file);
+					if (content.trim().length === 0) {
+						const templateFile = this.app.vault.getAbstractFileByPath(this.settings.defaultTemplate);
+						if (templateFile instanceof TFile) {
+							const templateContent = await this.app.vault.read(templateFile);
+							const now = new Date();
+							const dateString = now.toISOString().split('T')[0]; // YYYY-MM-DD
+							const timeString = now.toTimeString().split(' ')[0].slice(0, 5); // HH:mm
+							const processedContent = templateContent
+								.replace(/\{\{date\}\}/g, dateString)
+								.replace(/\{\{time\}\}/g, timeString)
+								.replace(/\{\{title\}\}/g, file.basename);
+							await this.app.vault.modify(file, processedContent);
+						}
+					}
 				}
 			})
 		);
@@ -31,28 +49,6 @@ export default class DefaultTemplatePlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
-	}
-
-	async maybeApplyDefaultTemplate(file: TFile) {
-		if (!this.settings.defaultTemplate) {
-			new Notice('Default Template: No template configured. Go to Settings → Default Template to select one.');
-			return;
-		}
-		const content = await this.app.vault.read(file);
-		if (content.trim().length === 0) {
-			const templateFile = this.app.vault.getAbstractFileByPath(this.settings.defaultTemplate);
-			if (templateFile instanceof TFile) {
-				const templateContent = await this.app.vault.read(templateFile);
-				const now = new Date();
-				const dateString = now.toISOString().split('T')[0]; // YYYY-MM-DD
-				const timeString = now.toTimeString().split(' ')[0].slice(0, 5); // HH:mm
-				const processedContent = templateContent
-					.replace(/\{\{date\}\}/g, dateString)
-					.replace(/\{\{time\}\}/g, timeString)
-					.replace(/\{\{title\}\}/g, file.basename);
-				await this.app.vault.modify(file, processedContent);
-			}
-		}
 	}
 }
 
