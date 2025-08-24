@@ -49,9 +49,22 @@ export default class DefaultTemplatePlugin extends Plugin {
 			const templateFile = this.app.vault.getAbstractFileByPath(this.settings.defaultTemplate);
 			if (templateFile instanceof TFile) {
 				const templateContent = await this.app.vault.read(templateFile);
-				await this.app.vault.modify(file, templateContent);
+				const processedContent = this.processTemplate(templateContent, file);
+				await this.app.vault.modify(file, processedContent);
 			}
 		}
+	}
+
+	processTemplate(content: string, file: TFile): string {
+		const now = new Date();
+		const fileName = file.basename;
+		
+		return content
+			.replace(/\{\{date\}\}/g, now.toISOString().split('T')[0])
+			.replace(/\{\{time\}\}/g, now.toTimeString().split(' ')[0])
+			.replace(/\{\{datetime\}\}/g, now.toISOString())
+			.replace(/\{\{title\}\}/g, fileName)
+			.replace(/\{\{filename\}\}/g, fileName);
 	}
 }
 
