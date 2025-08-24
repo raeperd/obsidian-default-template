@@ -1,4 +1,4 @@
-import { App, Notice, Plugin, PluginSettingTab, Setting, TFile, FuzzySuggestModal } from 'obsidian';
+import { App, Notice, Plugin, PluginSettingTab, Setting, TFile, FuzzySuggestModal, moment } from 'obsidian';
 
 interface DefaultTemplateSettings {
 	defaultTemplate: string;
@@ -26,12 +26,13 @@ export default class DefaultTemplatePlugin extends Plugin {
 						if (templateFile instanceof TFile) {
 							try {
 								const templateContent = await this.app.vault.read(templateFile);
-								const now = new Date();
-								const dateString = now.toISOString().split('T')[0]; // YYYY-MM-DD
-								const timeString = now.toTimeString().split(' ')[0].slice(0, 5); // HH:mm
 								const processedContent = templateContent
-									.replace(/\{\{date\}\}/g, dateString)
-									.replace(/\{\{time\}\}/g, timeString)
+									.replace(/\{\{date(?::([^}]+))?\}\}/g, (match, format) => {
+										return format ? moment().format(format) : moment().format('YYYY-MM-DD');
+									})
+									.replace(/\{\{time(?::([^}]+))?\}\}/g, (match, format) => {
+										return format ? moment().format(format) : moment().format('HH:mm');
+									})
 									.replace(/\{\{title\}\}/g, file.basename);
 								await this.app.vault.modify(file, processedContent);
 							} catch (error) {
