@@ -24,15 +24,22 @@ export default class DefaultTemplatePlugin extends Plugin {
 					if (content.trim().length === 0) {
 						const templateFile = this.app.vault.getAbstractFileByPath(this.settings.defaultTemplate);
 						if (templateFile instanceof TFile) {
-							const templateContent = await this.app.vault.read(templateFile);
-							const now = new Date();
-							const dateString = now.toISOString().split('T')[0]; // YYYY-MM-DD
-							const timeString = now.toTimeString().split(' ')[0].slice(0, 5); // HH:mm
-							const processedContent = templateContent
-								.replace(/\{\{date\}\}/g, dateString)
-								.replace(/\{\{time\}\}/g, timeString)
-								.replace(/\{\{title\}\}/g, file.basename);
-							await this.app.vault.modify(file, processedContent);
+							try {
+								const templateContent = await this.app.vault.read(templateFile);
+								const now = new Date();
+								const dateString = now.toISOString().split('T')[0]; // YYYY-MM-DD
+								const timeString = now.toTimeString().split(' ')[0].slice(0, 5); // HH:mm
+								const processedContent = templateContent
+									.replace(/\{\{date\}\}/g, dateString)
+									.replace(/\{\{time\}\}/g, timeString)
+									.replace(/\{\{title\}\}/g, file.basename);
+								await this.app.vault.modify(file, processedContent);
+							} catch (error) {
+								new Notice(`Default Template: Template file "${this.settings.defaultTemplate}" not found or cannot be read.`);
+								console.error('Default Template Plugin error:', error);
+							}
+						} else {
+							new Notice(`Default Template: Template file "${this.settings.defaultTemplate}" not found. Please select a new template.`);
 						}
 					}
 				}
