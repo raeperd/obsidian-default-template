@@ -36,7 +36,6 @@ export default class DefaultTemplatePlugin extends Plugin {
 								await this.app.vault.modify(file, processedContent);
 							} catch (error) {
 								new Notice(`Default Template: Template file "${this.settings.defaultTemplate}" not found or cannot be read.`);
-								console.error('Default Template Plugin error:', error);
 							}
 						} else {
 							new Notice(`Default Template: Template file "${this.settings.defaultTemplate}" not found. Please select a new template.`);
