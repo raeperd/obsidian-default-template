@@ -99,10 +99,11 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 				}));
 
 		if (this.plugin.settings.defaultTemplate) {
-			containerEl.createEl('p', {
-				text: `Current template: ${this.plugin.settings.defaultTemplate}`,
-				cls: 'setting-item-description'
+			const templateEl = containerEl.createEl('div', {
+				cls: 'setting-item-info'
 			});
+			templateEl.createEl('strong', { text: 'Current template: ' });
+			templateEl.createEl('code', { text: this.plugin.settings.defaultTemplate });
 		} else {
 			containerEl.createEl('p', {
 				text: 'No template selected. Plugin will not apply any template to new files.',
