@@ -71,18 +71,25 @@ Created on 2024-01-15 at 14:30
 
 ## Installation
 
-### From Releases (Recommended)
-1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/raeperd/obsidian-default-template/releases)
-2. Create folder `VaultFolder/.obsidian/plugins/obsidian-default-template/`
-3. Copy the downloaded files into the folder
-4. Reload Obsidian and enable the plugin in Settings → Community Plugins
+**⚠️ Not yet available in Community Plugins store**
 
-### Manual Build
+### Option 1: BRAT (Recommended)
+1. Install [BRAT plugin](https://github.com/TfTHacker/obsidian42-brat)
+2. In BRAT settings, add repository: `raeperd/obsidian-default-template`
+3. Enable the plugin in Settings → Community Plugins
+
+### Option 2: Manual Installation
+1. Download [latest release](https://github.com/raeperd/obsidian-default-template/releases) files
+2. Create `VaultFolder/.obsidian/plugins/obsidian-default-template/` folder  
+3. Extract all files into the folder
+4. Restart Obsidian → Settings → Community Plugins → Enable
+
+### Option 3: Clone Repository
 ```bash
+cd /path/to/vault/.obsidian/plugins/
 git clone https://github.com/raeperd/obsidian-default-template.git
 cd obsidian-default-template
-npm install
-npm run build
+npm install && npm run build
 ```
 
 ## References
