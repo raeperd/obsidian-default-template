@@ -1,16 +1,50 @@
-# Obsidian Sample Plugin
+# Default Template Plugin
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+Automatically apply templates to new notes with user-configurable template selection.
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+## Features
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+- **Auto-apply templates**: Automatically apply a default template to new empty notes
+- **Template selection**: Choose templates from your template folder using a fuzzy search modal
+- **Template variables**: Support for `{{date}}`, `{{time}}`, `{{datetime}}`, `{{title}}` variables
+- **Multiple commands**: Create notes with templates, set default templates, apply templates to current notes
+- **Configurable settings**: Set template folder, toggle auto-apply, and manage template variables
+
+## Commands
+
+- `Create new note with template`: Opens a template selector and creates a new note with the chosen template
+- `Set default template`: Choose a template to be automatically applied to new empty notes
+- `Apply template to current note`: Apply a template to the currently active note
+
+## Settings
+
+- **Template folder**: Specify the folder containing your templates (default: "Templates")
+- **Auto-apply default template**: Toggle automatic application of default template to new files
+- **Process template variables**: Enable/disable template variable replacement
+- **Default template**: Set a template to be used automatically
+
+## Template Variables
+
+The plugin supports the following template variables:
+
+- `{{date}}`: Current date (YYYY-MM-DD)
+- `{{time}}`: Current time (HH:MM:SS)
+- `{{datetime}}`: Current datetime (ISO format)
+- `{{title}}`: Placeholder for note title
+
+## Installation
+
+1. Copy the plugin files to your vault's `.obsidian/plugins/obsidian-default-template/` directory
+2. Enable the plugin in Obsidian's Community Plugins settings
+3. Configure your template folder in the plugin settings
+
+## Usage
+
+1. Create templates in your designated template folder
+2. Use the "Set default template" command to choose your default template
+3. Enable "Auto-apply default template" in settings
+4. New empty notes will automatically receive your default template
+5. Use "Create new note with template" for manual template selection
 
 ## First time developing plugins?
 
