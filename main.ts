@@ -59,12 +59,16 @@ export default class DefaultTemplatePlugin extends Plugin {
 		const now = new Date();
 		const fileName = file.basename;
 		
+		// Format date as YYYY-MM-DD
+		const dateString = now.toISOString().split('T')[0];
+		
+		// Format time as HH:mm
+		const timeString = now.toTimeString().split(' ')[0].slice(0, 5);
+		
 		return content
-			.replace(/\{\{date\}\}/g, now.toISOString().split('T')[0])
-			.replace(/\{\{time\}\}/g, now.toTimeString().split(' ')[0])
-			.replace(/\{\{datetime\}\}/g, now.toISOString())
-			.replace(/\{\{title\}\}/g, fileName)
-			.replace(/\{\{filename\}\}/g, fileName);
+			.replace(/\{\{date\}\}/g, dateString)
+			.replace(/\{\{time\}\}/g, timeString)
+			.replace(/\{\{title\}\}/g, fileName);
 	}
 }
 
