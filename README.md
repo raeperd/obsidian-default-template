@@ -19,6 +19,8 @@ The plugin supports these template variables (matching Obsidian's official Templ
 
 > **Note**: Format strings like `{{date:YYYY-MM-DD}}` are not supported in this minimal version.
 
+For more information about template variables and formatting options, see the [official Obsidian Templates documentation](https://help.obsidian.md/Plugins/Templates).
+
 ### Example Template
 
 Create a template file with content like this:
