@@ -87,15 +87,5 @@ npm run build
 
 ## References
 
-**User demand:**
-- [Default template for new note - Obsidian Forum](https://forum.obsidian.md/t/default-template-for-new-note-cltr-n-click-to-non-existing-note/10332) (3+ years of requests)
-- [Add a Default Template for New Notes - Obsidian Forum](https://forum.obsidian.md/t/add-a-default-template-for-new-notes/75223)
-
-**Similar solutions:**
-- [new-note-default-template](https://github.com/somsomers/new-note-default-template)
-- [obsidian-hotkeys-for-templates](https://github.com/Vinzent03/obsidian-hotkeys-for-templates)
-
-**Official docs:**
-- [Templates Plugin - Obsidian Help](https://help.obsidian.md/plugins/templates)  
-- [Obsidian Plugin API](https://github.com/obsidianmd/obsidian-api)
-- [Plugin Development Guide](https://docs.obsidian.md/Plugins/Getting+started/Build+a+plugin)
+- [Templates Plugin - Obsidian Help](https://help.obsidian.md/plugins/templates) (official documentation)
+- [Default template feature request](https://forum.obsidian.md/t/default-template-for-new-note-cltr-n-click-to-non-existing-note/10332) (3+ years of user requests)
