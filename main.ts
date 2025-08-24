@@ -1,4 +1,4 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, TFolder, FuzzySuggestModal, FuzzyMatch } from 'obsidian';
+import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, TFolder, FuzzySuggestModal, FuzzyMatch, TextComponent, AbstractInputSuggest } from 'obsidian';
 
 interface DefaultTemplateSettings {
 	templateFolder: string;
@@ -197,6 +197,42 @@ class TemplateSelectModal extends FuzzySuggestModal<TFile> {
 	}
 }
 
+class FolderSuggest extends AbstractInputSuggest<TFolder> {
+	textComponent: TextComponent;
+
+	constructor(app: App, inputEl: HTMLInputElement, textComponent: TextComponent) {
+		super(app, inputEl);
+		this.textComponent = textComponent;
+	}
+
+	getSuggestions(query: string): TFolder[] {
+		const abstractFiles = this.app.vault.getAllLoadedFiles();
+		const folders: TFolder[] = [];
+		const lowerCaseInputStr = query.toLowerCase();
+
+		abstractFiles.forEach((folder: TFolder) => {
+			if (
+				folder instanceof TFolder &&
+				folder.path.toLowerCase().contains(lowerCaseInputStr)
+			) {
+				folders.push(folder);
+			}
+		});
+
+		return folders;
+	}
+
+	renderSuggestion(folder: TFolder, el: HTMLElement): void {
+		el.setText(folder.path);
+	}
+
+	selectSuggestion(folder: TFolder): void {
+		this.setValue(folder.path);
+		this.textComponent.onChanged();
+		this.close();
+	}
+}
+
 class DefaultTemplateSettingTab extends PluginSettingTab {
 	plugin: DefaultTemplatePlugin;
 
@@ -214,13 +250,17 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName('Template folder')
 			.setDesc('Folder containing your template files')
-			.addText(text => text
-				.setPlaceholder('Templates')
-				.setValue(this.plugin.settings.templateFolder)
-				.onChange(async (value) => {
-					this.plugin.settings.templateFolder = value;
-					await this.plugin.saveSettings();
-				}));
+			.addText(text => {
+				text.setPlaceholder('Templates')
+					.setValue(this.plugin.settings.templateFolder)
+					.onChange(async (value) => {
+						this.plugin.settings.templateFolder = value;
+						await this.plugin.saveSettings();
+					});
+				
+				// Add folder suggestion to the input element
+				new FolderSuggest(this.app, text.inputEl, text);
+			});
 
 		new Setting(containerEl)
 			.setName('Auto-apply default template')
