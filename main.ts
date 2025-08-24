@@ -13,25 +13,17 @@ export default class DefaultTemplatePlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
-
-		// Only apply template if user has selected one
-		if (this.settings.defaultTemplate) {
-			this.registerEvent(
-				this.app.vault.on('create', (file) => {
-					if (file instanceof TFile && file.extension === 'md') {
-						this.maybeApplyDefaultTemplate(file);
-					}
-				})
-			);
-		}
-
-		// Add settings tab
+		this.registerEvent(
+			this.app.vault.on('create', (file) => {
+				if (file instanceof TFile && file.extension === 'md') {
+					this.maybeApplyDefaultTemplate(file);
+				}
+			})
+		);
 		this.addSettingTab(new DefaultTemplateSettingTab(this.app, this));
 	}
 
-	onunload() {
-
-	}
+	onunload() {}
 
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -41,9 +33,11 @@ export default class DefaultTemplatePlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-
 	async maybeApplyDefaultTemplate(file: TFile) {
-		// Only apply if file is empty
+		if (!this.settings.defaultTemplate) {
+			new Notice('Default Template: No template configured. Go to Settings → Default Template to select one.');
+			return;
+		}
 		const content = await this.app.vault.read(file);
 		if (content.trim().length === 0) {
 			const templateFile = this.app.vault.getAbstractFileByPath(this.settings.defaultTemplate);
@@ -58,13 +52,8 @@ export default class DefaultTemplatePlugin extends Plugin {
 	processTemplate(content: string, file: TFile): string {
 		const now = new Date();
 		const fileName = file.basename;
-		
-		// Format date as YYYY-MM-DD
-		const dateString = now.toISOString().split('T')[0];
-		
-		// Format time as HH:mm
-		const timeString = now.toTimeString().split(' ')[0].slice(0, 5);
-		
+		const dateString = now.toISOString().split('T')[0]; // YYYY-MM-DD
+		const timeString = now.toTimeString().split(' ')[0].slice(0, 5); // HH:mm
 		return content
 			.replace(/\{\{date\}\}/g, dateString)
 			.replace(/\{\{time\}\}/g, timeString)
