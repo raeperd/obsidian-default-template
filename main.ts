@@ -99,11 +99,10 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 				}));
 
 		if (this.plugin.settings.defaultTemplate) {
-			const templateEl = containerEl.createEl('div', {
-				cls: 'setting-item-info'
+			containerEl.createEl('div', {
+				text: `✓ Active template: ${this.plugin.settings.defaultTemplate}`,
+				cls: 'mod-success'
 			});
-			templateEl.createEl('strong', { text: 'Current template: ' });
-			templateEl.createEl('code', { text: this.plugin.settings.defaultTemplate });
 		} else {
 			containerEl.createEl('p', {
 				text: 'No template selected. Plugin will not apply any template to new files.',
