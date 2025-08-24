@@ -73,10 +73,12 @@ Created on 2024-01-15 at 14:30
 
 **⚠️ Not yet available in Community Plugins store**
 
-### Option 1: BRAT (Recommended)
-1. Install [BRAT plugin](https://github.com/TfTHacker/obsidian42-brat)
-2. In BRAT settings, add repository: `https://github.com/raeperd/obsidian-default-template`
-3. Enable the plugin in Settings → Community Plugins
+### Option 1: [BRAT](https://github.com/TfTHacker/obsidian42-brat) (Recommended)
+1. Install [BRAT plugin](https://obsidian.md/plugins?id=obsidian42-brat)
+2. In BRAT settings, click "Add beta plugin"
+3. Enter repository: `https://github.com/raeperd/obsidian-default-template`
+4. Check "Enable after installing the plugin" option
+5. Click "Add Plugin" button
 
 ### Option 2: Manual Installation
 1. Download [latest release](https://github.com/raeperd/obsidian-default-template/releases) files
