@@ -37,7 +37,7 @@ export default class DefaultTemplatePlugin extends Plugin {
 					})
 					.replace(/\{\{title\}\}/g, file.basename);
 				await this.app.vault.modify(file, processedContent);
-			} catch (error) {
+			} catch {
 				new Notice(`Default Template: Template file "${this.settings.defaultTemplate}" not found or cannot be read.`);
 			}
 		})
@@ -74,7 +74,7 @@ class TemplateSelectModal extends FuzzySuggestModal<TFile> {
 
 	onChooseItem(template: TFile): void {
 		this.plugin.settings.defaultTemplate = template.path;
-		this.plugin.saveSettings();
+		void this.plugin.saveSettings();
 		new Notice(`Default template set to: ${template.path}`);
 	}
 }
@@ -91,7 +91,7 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		containerEl.createEl('h2', { text: 'Default Template' });
+		new Setting(containerEl).setName('Default template').setHeading();
 
 		new Setting(containerEl)
 			.setName('Default template file')
