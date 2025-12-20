@@ -16,7 +16,7 @@ export default class DefaultTemplatePlugin extends Plugin {
 		this.registerEvent(this.app.vault.on('create', async (file) => {
 			if (!(file instanceof TFile) || file.extension !== 'md') return;
 			if (!this.settings.defaultTemplate) {
-				new Notice('Default Template: No template configured. Go to Settings → Default Template to select one.');
+				new Notice('No template configured. Go to settings to select one.');
 				return;
 			}
 			const content = await this.app.vault.read(file);
@@ -91,7 +91,7 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		new Setting(containerEl).setName('Default template').setHeading();
+		new Setting(containerEl).setName('Template').setHeading();
 
 		new Setting(containerEl)
 			.setName('Default template file')
