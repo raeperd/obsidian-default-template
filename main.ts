@@ -1,4 +1,4 @@
-import { App, Notice, Plugin, PluginSettingTab, Setting, TFile, FuzzySuggestModal, moment } from 'obsidian';
+import { AbstractInputSuggest, App, Notice, Plugin, PluginSettingTab, Setting, TFile, moment, normalizePath } from 'obsidian';
 
 interface DefaultTemplateSettings {
 	defaultTemplate: string;
@@ -56,26 +56,28 @@ export default class DefaultTemplatePlugin extends Plugin {
 	}
 }
 
-class TemplateSelectModal extends FuzzySuggestModal<TFile> {
-	plugin: DefaultTemplatePlugin;
+class FileSuggest extends AbstractInputSuggest<TFile> {
+	private inputEl: HTMLInputElement;
 
-	constructor(app: App, plugin: DefaultTemplatePlugin) {
-		super(app);
-		this.plugin = plugin;
+	constructor(app: App, inputEl: HTMLInputElement) {
+		super(app, inputEl);
+		this.inputEl = inputEl;
 	}
 
-	getItems(): TFile[] {
-		return this.app.vault.getMarkdownFiles();
+	getSuggestions(inputStr: string): TFile[] {
+		const inputLower = inputStr.toLowerCase();
+		return this.app.vault.getMarkdownFiles()
+			.filter(file => file.path.toLowerCase().includes(inputLower));
 	}
 
-	getItemText(template: TFile): string {
-		return template.path;
+	renderSuggestion(file: TFile, el: HTMLElement): void {
+		el.createEl("div", { text: file.path });
 	}
 
-	onChooseItem(template: TFile): void {
-		this.plugin.settings.defaultTemplate = template.path;
-		void this.plugin.saveSettings();
-		new Notice(`Default template set to: ${template.path}`);
+	selectSuggestion(file: TFile): void {
+		this.inputEl.value = file.path;
+		this.inputEl.trigger('input');
+		this.close();
 	}
 }
 
@@ -96,22 +98,15 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName('Default template file')
 			.setDesc('Select a template file to automatically apply to new empty notes')
-			.addButton(button => button
-				.setButtonText('Select template')
-				.onClick(() => {
-					new TemplateSelectModal(this.app, this.plugin).open();
-				}));
-
-		if (this.plugin.settings.defaultTemplate) {
-			containerEl.createEl('div', {
-				text: `✓ Active template: ${this.plugin.settings.defaultTemplate}`,
-				cls: 'mod-success'
+			.addText(text => {
+				text.setPlaceholder('path/to/template.md')
+					.setValue(this.plugin.settings.defaultTemplate)
+					.onChange(async (value) => {
+						this.plugin.settings.defaultTemplate = normalizePath(value);
+						await this.plugin.saveSettings();
+					});
+				
+				new FileSuggest(this.app, text.inputEl);
 			});
-		} else {
-			containerEl.createEl('p', {
-				text: 'No template selected. Plugin will not apply any template to new files.',
-				cls: 'setting-item-description'
-			});
-		}
 	}
 }
