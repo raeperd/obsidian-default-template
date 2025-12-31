@@ -1,4 +1,4 @@
-import { App, Notice, Plugin, PluginSettingTab, Setting, TFile, FuzzySuggestModal, moment } from 'obsidian';
+import { AbstractInputSuggest, App, Notice, Plugin, PluginSettingTab, Setting, TFile, moment, normalizePath } from 'obsidian';
 
 interface DefaultTemplateSettings {
 	defaultTemplate: string;
@@ -19,24 +19,32 @@ export default class DefaultTemplatePlugin extends Plugin {
 				new Notice('No template configured. Go to settings to select one.');
 				return;
 			}
-			const content = await this.app.vault.read(file);
-			if (content.trim().length !== 0) return;
 			const templateFile = this.app.vault.getAbstractFileByPath(this.settings.defaultTemplate);
 			if (!(templateFile instanceof TFile)) {
 				new Notice(`Default Template: Template file "${this.settings.defaultTemplate}" not found. Please select a new template.`);
 				return;
 			}
 			try {
+				// Read template content before calling process
 				const templateContent = await this.app.vault.read(templateFile);
-				const processedContent = templateContent
-					.replace(/\{\{date(?::([^}]+))?\}\}/g, (_, format) => {
-						return format ? moment().format(format) : moment().format('YYYY-MM-DD');
-					})
-					.replace(/\{\{time(?::([^}]+))?\}\}/g, (_, format) => {
-						return format ? moment().format(format) : moment().format('HH:mm');
-					})
-					.replace(/\{\{title\}\}/g, file.basename);
-				await this.app.vault.modify(file, processedContent);
+				
+				// Use process() for atomic file modification
+				await this.app.vault.process(file, (content) => {
+					// Return unchanged if file is not empty
+					if (content.trim().length !== 0) return content;
+					
+					// Process template variables
+					const processedContent = templateContent
+						.replace(/\{\{date(?::([^}]+))?\}\}/g, (_, format) => {
+							return format ? moment().format(format) : moment().format('YYYY-MM-DD');
+						})
+						.replace(/\{\{time(?::([^}]+))?\}\}/g, (_, format) => {
+							return format ? moment().format(format) : moment().format('HH:mm');
+						})
+						.replace(/\{\{title\}\}/g, file.basename);
+					
+					return processedContent;
+				});
 			} catch {
 				new Notice(`Default Template: Template file "${this.settings.defaultTemplate}" not found or cannot be read.`);
 			}
@@ -56,26 +64,28 @@ export default class DefaultTemplatePlugin extends Plugin {
 	}
 }
 
-class TemplateSelectModal extends FuzzySuggestModal<TFile> {
-	plugin: DefaultTemplatePlugin;
+class FileSuggest extends AbstractInputSuggest<TFile> {
+	private inputEl: HTMLInputElement;
 
-	constructor(app: App, plugin: DefaultTemplatePlugin) {
-		super(app);
-		this.plugin = plugin;
+	constructor(app: App, inputEl: HTMLInputElement) {
+		super(app, inputEl);
+		this.inputEl = inputEl;
 	}
 
-	getItems(): TFile[] {
-		return this.app.vault.getMarkdownFiles();
+	getSuggestions(inputStr: string): TFile[] {
+		const inputLower = inputStr.toLowerCase();
+		return this.app.vault.getMarkdownFiles()
+			.filter(file => file.path.toLowerCase().includes(inputLower));
 	}
 
-	getItemText(template: TFile): string {
-		return template.path;
+	renderSuggestion(file: TFile, el: HTMLElement): void {
+		el.createEl("div", { text: file.path });
 	}
 
-	onChooseItem(template: TFile): void {
-		this.plugin.settings.defaultTemplate = template.path;
-		void this.plugin.saveSettings();
-		new Notice(`Default template set to: ${template.path}`);
+	selectSuggestion(file: TFile): void {
+		this.inputEl.value = file.path;
+		this.inputEl.trigger('input');
+		this.close();
 	}
 }
 
@@ -96,22 +106,15 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName('Default template file')
 			.setDesc('Select a template file to automatically apply to new empty notes')
-			.addButton(button => button
-				.setButtonText('Select template')
-				.onClick(() => {
-					new TemplateSelectModal(this.app, this.plugin).open();
-				}));
-
-		if (this.plugin.settings.defaultTemplate) {
-			containerEl.createEl('div', {
-				text: `✓ Active template: ${this.plugin.settings.defaultTemplate}`,
-				cls: 'mod-success'
+			.addText(text => {
+				text.setPlaceholder('path/to/template.md')
+					.setValue(this.plugin.settings.defaultTemplate)
+					.onChange(async (value) => {
+						this.plugin.settings.defaultTemplate = normalizePath(value);
+						await this.plugin.saveSettings();
+					});
+				
+				new FileSuggest(this.app, text.inputEl);
 			});
-		} else {
-			containerEl.createEl('p', {
-				text: 'No template selected. Plugin will not apply any template to new files.',
-				cls: 'setting-item-description'
-			});
-		}
 	}
 }
