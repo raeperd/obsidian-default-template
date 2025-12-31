@@ -19,24 +19,32 @@ export default class DefaultTemplatePlugin extends Plugin {
 				new Notice('No template configured. Go to settings to select one.');
 				return;
 			}
-			const content = await this.app.vault.read(file);
-			if (content.trim().length !== 0) return;
 			const templateFile = this.app.vault.getAbstractFileByPath(this.settings.defaultTemplate);
 			if (!(templateFile instanceof TFile)) {
 				new Notice(`Default Template: Template file "${this.settings.defaultTemplate}" not found. Please select a new template.`);
 				return;
 			}
 			try {
+				// Read template content before calling process
 				const templateContent = await this.app.vault.read(templateFile);
-				const processedContent = templateContent
-					.replace(/\{\{date(?::([^}]+))?\}\}/g, (_, format) => {
-						return format ? moment().format(format) : moment().format('YYYY-MM-DD');
-					})
-					.replace(/\{\{time(?::([^}]+))?\}\}/g, (_, format) => {
-						return format ? moment().format(format) : moment().format('HH:mm');
-					})
-					.replace(/\{\{title\}\}/g, file.basename);
-				await this.app.vault.modify(file, processedContent);
+				
+				// Use process() for atomic file modification
+				await this.app.vault.process(file, (content) => {
+					// Return unchanged if file is not empty
+					if (content.trim().length !== 0) return content;
+					
+					// Process template variables
+					const processedContent = templateContent
+						.replace(/\{\{date(?::([^}]+))?\}\}/g, (_, format) => {
+							return format ? moment().format(format) : moment().format('YYYY-MM-DD');
+						})
+						.replace(/\{\{time(?::([^}]+))?\}\}/g, (_, format) => {
+							return format ? moment().format(format) : moment().format('HH:mm');
+						})
+						.replace(/\{\{title\}\}/g, file.basename);
+					
+					return processedContent;
+				});
 			} catch {
 				new Notice(`Default Template: Template file "${this.settings.defaultTemplate}" not found or cannot be read.`);
 			}
