@@ -1,0 +1,1 @@
+/Users/raeperd/Codes/raeperd/obsidian-default-template/main.js
