@@ -24,13 +24,38 @@ jobs:
           npm run lint
           npm run build
 
-      - name: Create release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Validate version consistency
         run: |
           tag="${GITHUB_REF#refs/tags/}"
+          package_version=$(jq -r '.version' package.json)
+          manifest_version=$(jq -r '.version' manifest.json)
 
-          gh release create "$tag" \
-            --title="$tag" \
-            --draft \
-            main.js manifest.json
+          echo "Tag: $tag"
+          echo "package.json version: $package_version"
+          echo "manifest.json version: $manifest_version"
+
+          if [ "$tag" != "$package_version" ]; then
+            echo "Error: Tag ($tag) does not match package.json version ($package_version)"
+            exit 1
+          fi
+
+          if [ "$tag" != "$manifest_version" ]; then
+            echo "Error: Tag ($tag) does not match manifest.json version ($manifest_version)"
+            exit 1
+          fi
+
+          if ! jq -e --arg tag "$tag" 'has($tag)' versions.json > /dev/null; then
+            echo "Error: Tag ($tag) not found in versions.json"
+            exit 1
+          fi
+
+          echo "✓ All version checks passed"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            main.js
+            manifest.json
+            styles.css
+          generate_release_notes: true
