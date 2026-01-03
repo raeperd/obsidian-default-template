@@ -15,10 +15,22 @@
 
 **ONE THING:** Automatically applies your selected template to new empty notes.
 
-✅ **Set once, forget forever** - Choose any template file, never manually insert again  
-✅ **Works everywhere** - Ctrl+N, clicking non-existent links, any note creation method  
-✅ **Template variables** - Processes `{{date}}`, `{{time}}`, `{{title}}` like official Templates plugin  
+✅ **Set once, forget forever** - Choose any template file, never manually insert again
+✅ **Works everywhere** - Ctrl+N, clicking non-existent links, any note creation method
+✅ **Folder templates** - Different templates for different folders with hierarchy fallback
+✅ **Ignore paths** - Skip template application for specific folders
+✅ **Template variables** - Processes `{{date}}`, `{{time}}`, `{{title}}` like official Templates plugin
 ✅ **Zero interference** - No template selected? Plugin does nothing
+
+## Features
+
+### Folder Templates
+Assign different templates to specific folders. Notes in `Projects/` can use a project template while notes in `Journal/` use a daily template.
+
+**Hierarchy fallback:** If `Projects/Work/ClientA/` has no template, it checks `Projects/Work/`, then `Projects/`, then falls back to default.
+
+### Ignore Paths
+Exclude folders where templates shouldn't be applied. Useful for scratch notes, temporary files, or areas where templates would be intrusive.
 
 ## Template Variables
 
