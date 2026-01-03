@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-default-template",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "Automatically apply templates to new notes with user-configurable template selection.",
 	"main": "main.js",
 	"scripts": {
