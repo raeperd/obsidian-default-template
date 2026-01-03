@@ -1,0 +1,1 @@
+Journal template with {{date}}

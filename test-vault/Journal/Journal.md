@@ -1,0 +1,1 @@
+Journal template with 2026-01-03

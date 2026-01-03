@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Templates/Daily Note.md",
+                "file": "Journal/Journal.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Daily Note"
+              "title": "Journal"
             }
           }
         ]
@@ -185,9 +185,27 @@
   },
   "active": "c20aef4144bac3b1",
   "lastOpenFiles": [
-    "test-file-created.md",
+    "Projects/ClientA/ClientA.md",
+    "Projects/ClientB/ClientB.md",
+    "TESTING.md",
+    "Templates/ClientA.md",
     "Welcome.md",
-    "Templates/Daily Note.md",
+    "Templates/Default.md",
+    "test-file-created.md",
+    "Templates/Folder.md",
+    "Templates/Journal.md",
+    "Templates/Project.md",
+    "Folder/Untitled.md",
+    "Journal/Journal.md",
+    "Projects/ClientB/Untitled.md",
+    "Projects/ClientA/Untitled.md",
+    "Projects/ClientA/Untitled 1.md",
+    "Templates/ClientA Note.md",
+    "Journal",
+    "Projects/ClientB",
+    "Projects/ClientA",
+    "Projects",
+    "Folder",
     "Templates",
     "Testing Guide.md"
   ]
