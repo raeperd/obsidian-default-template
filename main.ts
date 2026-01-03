@@ -236,14 +236,16 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 							const index = this.plugin.settings.ignorePaths.indexOf(ignorePath);
 
 							if (normalizedPath) {
-								// Check for duplicates
-								if (!this.plugin.settings.ignorePaths.includes(normalizedPath) ||
-									this.plugin.settings.ignorePaths[index] === normalizedPath) {
-									this.plugin.settings.ignorePaths[index] = normalizedPath;
-									await this.plugin.saveSettings();
-									this.display();
-								} else {
-									new Notice('Path already ignored');
+								// Check if path actually changed
+								if (normalizedPath !== ignorePath) {
+									// Check for duplicates
+									if (!this.plugin.settings.ignorePaths.includes(normalizedPath)) {
+										this.plugin.settings.ignorePaths[index] = normalizedPath;
+										await this.plugin.saveSettings();
+										this.display();
+									} else {
+										new Notice('Path already ignored');
+									}
 								}
 							} else {
 								// Remove if empty
