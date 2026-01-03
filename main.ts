@@ -256,7 +256,6 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 						vault.getAllLoadedFiles()
 							.filter((file): file is TFolder => file instanceof TFolder)
 							.filter(folder => folder.path && folder.path !== '/')
-							.filter(folder => !this.plugin.settings.ignorePaths.includes(folder.path) || folder.path === ignorePath)
 							.filter(folder => folder.path.toLowerCase().includes(inputLower))
 					);
 				})
