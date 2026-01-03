@@ -79,14 +79,10 @@ Created on January 15th, 2024 at 14:30
 
 ## Installation
 
-**⚠️ Not yet available in Community Plugins store**
-
-### Option 1: [BRAT](https://github.com/TfTHacker/obsidian42-brat) (Recommended)
-1. Install [BRAT plugin](https://obsidian.md/plugins?id=obsidian42-brat)
-2. In BRAT settings, click "Add beta plugin"
-3. Enter repository: `https://github.com/raeperd/obsidian-default-template`
-4. Check "Enable after installing the plugin" option
-5. Click "Add Plugin" button
+### Option 1: Community Plugins (Recommended)
+1. Open Obsidian Settings → Community Plugins
+2. Click "Browse" and search for "Default Template"
+3. Click "Install" then "Enable"
 
 ### Option 2: Manual Installation
 1. Download [latest release](https://github.com/raeperd/obsidian-default-template/releases) files
@@ -94,7 +90,14 @@ Created on January 15th, 2024 at 14:30
 3. Extract all files into the folder
 4. Restart Obsidian → Settings → Community Plugins → Enable
 
-### Option 3: Clone Repository
+### Option 3: [BRAT](https://github.com/TfTHacker/obsidian42-brat) (Beta Testing)
+1. Install [BRAT plugin](https://obsidian.md/plugins?id=obsidian42-brat)
+2. In BRAT settings, click "Add beta plugin"
+3. Enter repository: `https://github.com/raeperd/obsidian-default-template`
+4. Check "Enable after installing the plugin" option
+5. Click "Add Plugin" button
+
+### Option 4: Clone Repository
 ```bash
 cd /path/to/vault/.obsidian/plugins/
 git clone https://github.com/raeperd/obsidian-default-template.git
