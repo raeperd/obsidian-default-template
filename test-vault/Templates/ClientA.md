@@ -1,0 +1,1 @@
+ClientA template with {{date}}

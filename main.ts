@@ -1,11 +1,13 @@
-import { AbstractInputSuggest, App, Notice, Plugin, PluginSettingTab, Setting, TFile, moment, normalizePath } from 'obsidian';
+import { AbstractInputSuggest, App, Notice, Plugin, PluginSettingTab, Setting, TAbstractFile, TFile, TFolder, Vault, moment, normalizePath } from 'obsidian';
 
 interface DefaultTemplateSettings {
 	defaultTemplate: string;
+	folderTemplates: Record<string, string>;
 }
 
 const DEFAULT_SETTINGS: DefaultTemplateSettings = {
-	defaultTemplate: ''
+	defaultTemplate: '',
+	folderTemplates: {}
 }
 
 export default class DefaultTemplatePlugin extends Plugin {
@@ -15,13 +17,31 @@ export default class DefaultTemplatePlugin extends Plugin {
 		await this.loadSettings();
 		this.registerEvent(this.app.vault.on('create', async (file) => {
 			if (!(file instanceof TFile) || file.extension !== 'md') return;
-			if (!this.settings.defaultTemplate) {
+			
+			// Find template file with folder hierarchy fallback
+			const getTemplateFile = (filePath: string): TFile | undefined => {
+				const parts = filePath.split('/').slice(0, -1); // remove filename
+				// Try folder templates from most specific to least specific
+				while (parts.length > 0) {
+					const folderPath = parts.join('/');
+					const templatePath = this.settings.folderTemplates[folderPath];
+					if (templatePath) {
+						const templateFile = this.app.vault.getAbstractFileByPath(templatePath);
+						if (templateFile instanceof TFile) return templateFile;
+					}
+					parts.pop();
+				}
+				// Fall back to default template
+				if (this.settings.defaultTemplate) {
+					const templateFile = this.app.vault.getAbstractFileByPath(this.settings.defaultTemplate);
+					if (templateFile instanceof TFile) return templateFile;
+				}
+				return undefined;
+			};
+			
+			const templateFile = getTemplateFile(file.path);
+			if (!templateFile) {
 				new Notice('No template configured. Go to settings to select one.');
-				return;
-			}
-			const templateFile = this.app.vault.getAbstractFileByPath(this.settings.defaultTemplate);
-			if (!(templateFile instanceof TFile)) {
-				new Notice(`Default Template: Template file "${this.settings.defaultTemplate}" not found. Please select a new template.`);
 				return;
 			}
 			try {
@@ -46,7 +66,7 @@ export default class DefaultTemplatePlugin extends Plugin {
 					return processedContent;
 				});
 			} catch {
-				new Notice(`Default Template: Template file "${this.settings.defaultTemplate}" not found or cannot be read.`);
+				new Notice(`Default Template: Template file "${templateFile.path}" not found or cannot be read.`);
 			}
 		})
 		);
@@ -64,26 +84,25 @@ export default class DefaultTemplatePlugin extends Plugin {
 	}
 }
 
-class FileSuggest extends AbstractInputSuggest<TFile> {
-	private inputEl: HTMLInputElement;
-
-	constructor(app: App, inputEl: HTMLInputElement) {
+class TAbstractFileSuggest<T extends TAbstractFile> extends AbstractInputSuggest<T> {
+	constructor(
+		app: App, 
+		private inputEl: HTMLInputElement,
+		private getSuggestionsFn: (vault: Vault, inputLower: string) => T[]
+	) {
 		super(app, inputEl);
-		this.inputEl = inputEl;
 	}
 
-	getSuggestions(inputStr: string): TFile[] {
-		const inputLower = inputStr.toLowerCase();
-		return this.app.vault.getMarkdownFiles()
-			.filter(file => file.path.toLowerCase().includes(inputLower));
+	getSuggestions(inputStr: string): T[] {
+		return this.getSuggestionsFn(this.app.vault, inputStr.toLowerCase());
 	}
 
-	renderSuggestion(file: TFile, el: HTMLElement): void {
-		el.createEl("div", { text: file.path });
+	renderSuggestion(item: T, el: HTMLElement): void {
+		el.createEl("div", { text: item.path });
 	}
 
-	selectSuggestion(file: TFile): void {
-		this.inputEl.value = file.path;
+	selectSuggestion(item: T): void {
+		this.inputEl.value = item.path;
 		this.inputEl.trigger('input');
 		this.close();
 	}
@@ -101,11 +120,9 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		new Setting(containerEl).setName('Template').setHeading();
-
 		new Setting(containerEl)
 			.setName('Default template file')
-			.setDesc('Select a template file to automatically apply to new empty notes')
+			.setDesc('Select a template file to apply to new empty notes')
 			.addText(text => {
 				text.setPlaceholder('path/to/template.md')
 					.setValue(this.plugin.settings.defaultTemplate)
@@ -114,7 +131,77 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					});
 				
-				new FileSuggest(this.app, text.inputEl);
+				new TAbstractFileSuggest(this.app, text.inputEl, (vault, inputLower) => 
+					vault.getMarkdownFiles()
+						.filter(file => file.path.toLowerCase().includes(inputLower))
+				);
 			});
+
+		new Setting(containerEl).setName('Folder templates').setHeading();
+
+		containerEl.createEl('p', {
+			text: 'Override the default template for specific folders',
+			cls: 'setting-item-description'
+		});
+
+		// Display existing folder templates
+		const folderEntries = Object.entries(this.plugin.settings.folderTemplates);
+		for (const [folderPath, templatePath] of folderEntries) {
+			new Setting(containerEl)
+				.setName(`Folder: ${folderPath}`)
+				.addText(text => {
+					text.setPlaceholder('Folder/path')
+						.setValue(folderPath)
+						.onChange(async (newFolderPath) => {
+							const normalizedPath = normalizePath(newFolderPath);
+							if (normalizedPath !== folderPath) {
+								delete this.plugin.settings.folderTemplates[folderPath];
+								if (normalizedPath) {
+									this.plugin.settings.folderTemplates[normalizedPath] = templatePath;
+								}
+								await this.plugin.saveSettings();
+								this.display();
+							}
+						});
+					new TAbstractFileSuggest(this.app, text.inputEl, (vault, inputLower) =>
+						vault.getAllLoadedFiles()
+							.filter((file): file is TFolder => file instanceof TFolder)
+							.filter(folder => folder.path.toLowerCase().includes(inputLower))
+					);
+				})
+				.addText(text => {
+					text.setPlaceholder('path/to/template.md')
+						.setValue(templatePath)
+						.onChange(async (value) => {
+							this.plugin.settings.folderTemplates[folderPath] = normalizePath(value);
+							await this.plugin.saveSettings();
+						});
+					new TAbstractFileSuggest(this.app, text.inputEl, (vault, inputLower) =>
+						vault.getMarkdownFiles()
+							.filter(file => file.path.toLowerCase().includes(inputLower))
+					);
+				})
+				.addExtraButton(button => button
+					.setIcon('trash')
+					.setTooltip('Delete folder template')
+					.onClick(async () => {
+						delete this.plugin.settings.folderTemplates[folderPath];
+						await this.plugin.saveSettings();
+						this.display();
+					})
+				);
+		}
+
+		// Add folder template button
+		new Setting(containerEl)
+			.addButton(button => button
+				.setButtonText('Add folder template')
+				.setCta()
+				.onClick(async () => {
+					this.plugin.settings.folderTemplates[''] = '';
+					await this.plugin.saveSettings();
+					this.display();
+				})
+			);
 	}
 }
