@@ -224,50 +224,50 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 
 		// Display existing ignore paths
 		for (const ignorePath of this.plugin.settings.ignorePaths) {
-			new Setting(containerEl)
-				.setName(ignorePath || '(empty)')
-				.addText(text => {
-					text.setPlaceholder('Folder/path')
-						.setValue(ignorePath)
-						.onChange(async (newPath) => {
-							const normalizedPath = normalizePath(newPath);
-							const index = this.plugin.settings.ignorePaths.indexOf(ignorePath);
+			const setting = new Setting(containerEl);
+			if (ignorePath) setting.setName(ignorePath);
+			setting.addText(text => {
+				text.setPlaceholder('Folder/path')
+					.setValue(ignorePath)
+					.onChange(async (newPath) => {
+						const normalizedPath = normalizePath(newPath);
+						const index = this.plugin.settings.ignorePaths.indexOf(ignorePath);
 
-							if (normalizedPath) {
-								// Check for duplicates
-								if (!this.plugin.settings.ignorePaths.includes(normalizedPath) ||
-									this.plugin.settings.ignorePaths[index] === normalizedPath) {
-									this.plugin.settings.ignorePaths[index] = normalizedPath;
-									await this.plugin.saveSettings();
-									this.display();
-								} else {
-									new Notice('Path already ignored');
-								}
-							} else {
-								// Remove if empty
-								this.plugin.settings.ignorePaths.splice(index, 1);
+						if (normalizedPath) {
+							// Check for duplicates
+							if (!this.plugin.settings.ignorePaths.includes(normalizedPath) ||
+								this.plugin.settings.ignorePaths[index] === normalizedPath) {
+								this.plugin.settings.ignorePaths[index] = normalizedPath;
 								await this.plugin.saveSettings();
 								this.display();
+							} else {
+								new Notice('Path already ignored');
 							}
-						});
+						} else {
+							// Remove if empty
+							this.plugin.settings.ignorePaths.splice(index, 1);
+							await this.plugin.saveSettings();
+							this.display();
+						}
+					});
 
-					new TAbstractFileSuggest(this.app, text.inputEl, (vault, inputLower) =>
-						vault.getAllLoadedFiles()
-							.filter((file): file is TFolder => file instanceof TFolder)
-							.filter(folder => folder.path && folder.path !== '/')
-							.filter(folder => folder.path.toLowerCase().includes(inputLower))
-					);
-				})
-				.addExtraButton(button => button
-					.setIcon('trash')
-					.setTooltip('Remove')
-					.onClick(async () => {
-						const index = this.plugin.settings.ignorePaths.indexOf(ignorePath);
-						this.plugin.settings.ignorePaths.splice(index, 1);
-						await this.plugin.saveSettings();
-						this.display();
-					})
+				new TAbstractFileSuggest(this.app, text.inputEl, (vault, inputLower) =>
+					vault.getAllLoadedFiles()
+						.filter((file): file is TFolder => file instanceof TFolder)
+						.filter(folder => folder.path && folder.path !== '/')
+						.filter(folder => folder.path.toLowerCase().includes(inputLower))
 				);
+			})
+			.addExtraButton(button => button
+				.setIcon('trash')
+				.setTooltip('Remove')
+				.onClick(async () => {
+					const index = this.plugin.settings.ignorePaths.indexOf(ignorePath);
+					this.plugin.settings.ignorePaths.splice(index, 1);
+					await this.plugin.saveSettings();
+					this.display();
+				})
+			);
 		}
 
 		// Add ignore path button
