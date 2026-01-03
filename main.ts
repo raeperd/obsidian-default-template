@@ -174,10 +174,11 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 								this.display();
 							}
 						});
+					const configuredFolders = Object.keys(this.plugin.settings.folderTemplates);
 					new TAbstractFileSuggest(this.app, text.inputEl, (vault, inputLower) =>
 						vault.getAllLoadedFiles()
 							.filter((file): file is TFolder => file instanceof TFolder)
-							.filter(folder => !Object.keys(this.plugin.settings.folderTemplates).includes(folder.path) || folder.path === folderPath)
+							.filter(folder => !configuredFolders.includes(folder.path) || folder.path === folderPath)
 							.filter(folder => folder.path.toLowerCase().includes(inputLower))
 					);
 				})
