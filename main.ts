@@ -3,11 +3,13 @@ import { AbstractInputSuggest, App, Notice, Plugin, PluginSettingTab, Setting, T
 interface DefaultTemplateSettings {
 	defaultTemplate: string;
 	folderTemplates: Record<string, string>;
+	ignorePaths: string[];
 }
 
 const DEFAULT_SETTINGS: DefaultTemplateSettings = {
 	defaultTemplate: '',
-	folderTemplates: {}
+	folderTemplates: {},
+	ignorePaths: []
 }
 
 export default class DefaultTemplatePlugin extends Plugin {
@@ -17,7 +19,16 @@ export default class DefaultTemplatePlugin extends Plugin {
 		await this.loadSettings();
 		this.registerEvent(this.app.vault.on('create', async (file) => {
 			if (!(file instanceof TFile) || file.extension !== 'md') return;
-			
+
+			// Check if file path should be ignored (prefix matching)
+			const normalizedFilePath = normalizePath(file.path);
+			const shouldIgnore = this.settings.ignorePaths.some(ignorePath => {
+				const normalizedIgnorePath = normalizePath(ignorePath);
+				return normalizedFilePath === normalizedIgnorePath ||
+					normalizedFilePath.startsWith(normalizedIgnorePath + '/');
+			});
+			if (shouldIgnore) return;
+
 			// Find template file with folder hierarchy fallback
 			const getTemplateFile = (filePath: string): TFile | undefined => {
 				const parts = filePath.split('/').slice(0, -1); // remove filename
@@ -201,6 +212,75 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 					this.plugin.settings.folderTemplates[''] = '';
 					await this.plugin.saveSettings();
 					this.display();
+				})
+			);
+
+		new Setting(containerEl).setName('Ignore paths').setHeading();
+
+		containerEl.createEl('p', {
+			text: 'Skip template application for files in these folders',
+			cls: 'setting-item-description'
+		});
+
+		// Display existing ignore paths
+		for (const ignorePath of this.plugin.settings.ignorePaths) {
+			new Setting(containerEl)
+				.setName(`Ignore: ${ignorePath || '(empty - will be removed)'}`)
+				.addText(text => {
+					text.setPlaceholder('Folder/path')
+						.setValue(ignorePath)
+						.onChange(async (newPath) => {
+							const normalizedPath = normalizePath(newPath);
+							const index = this.plugin.settings.ignorePaths.indexOf(ignorePath);
+
+							if (normalizedPath) {
+								// Check for duplicates
+								if (!this.plugin.settings.ignorePaths.includes(normalizedPath) ||
+									this.plugin.settings.ignorePaths[index] === normalizedPath) {
+									this.plugin.settings.ignorePaths[index] = normalizedPath;
+									await this.plugin.saveSettings();
+									this.display();
+								} else {
+									new Notice('This path is already in the ignore list');
+								}
+							} else {
+								// Remove if empty
+								this.plugin.settings.ignorePaths.splice(index, 1);
+								await this.plugin.saveSettings();
+								this.display();
+							}
+						});
+
+					new TAbstractFileSuggest(this.app, text.inputEl, (vault, inputLower) =>
+						vault.getAllLoadedFiles()
+							.filter((file): file is TFolder => file instanceof TFolder)
+							.filter(folder => folder.path.toLowerCase().includes(inputLower))
+					);
+				})
+				.addExtraButton(button => button
+					.setIcon('trash')
+					.setTooltip('Remove ignore path')
+					.onClick(async () => {
+						const index = this.plugin.settings.ignorePaths.indexOf(ignorePath);
+						this.plugin.settings.ignorePaths.splice(index, 1);
+						await this.plugin.saveSettings();
+						this.display();
+					})
+				);
+		}
+
+		// Add ignore path button
+		new Setting(containerEl)
+			.addButton(button => button
+				.setButtonText('Add ignore path')
+				.setCta()
+				.onClick(async () => {
+					// Don't add if empty string already exists
+					if (!this.plugin.settings.ignorePaths.includes('')) {
+						this.plugin.settings.ignorePaths.push('');
+						await this.plugin.saveSettings();
+						this.display();
+					}
 				})
 			);
 	}
