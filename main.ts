@@ -218,14 +218,14 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 		new Setting(containerEl).setName('Ignore paths').setHeading();
 
 		containerEl.createEl('p', {
-			text: 'Skip template application for files in these folders',
+			text: 'Folders where templates will not be applied',
 			cls: 'setting-item-description'
 		});
 
 		// Display existing ignore paths
 		for (const ignorePath of this.plugin.settings.ignorePaths) {
 			new Setting(containerEl)
-				.setName(`Ignore: ${ignorePath || '(empty - will be removed)'}`)
+				.setName(ignorePath || '(empty)')
 				.addText(text => {
 					text.setPlaceholder('Folder/path')
 						.setValue(ignorePath)
@@ -241,7 +241,7 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 									await this.plugin.saveSettings();
 									this.display();
 								} else {
-									new Notice('This path is already in the ignore list');
+									new Notice('Path already ignored');
 								}
 							} else {
 								// Remove if empty
@@ -254,12 +254,13 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 					new TAbstractFileSuggest(this.app, text.inputEl, (vault, inputLower) =>
 						vault.getAllLoadedFiles()
 							.filter((file): file is TFolder => file instanceof TFolder)
+							.filter(folder => folder.path && folder.path !== '/')
 							.filter(folder => folder.path.toLowerCase().includes(inputLower))
 					);
 				})
 				.addExtraButton(button => button
 					.setIcon('trash')
-					.setTooltip('Remove ignore path')
+					.setTooltip('Remove')
 					.onClick(async () => {
 						const index = this.plugin.settings.ignorePaths.indexOf(ignorePath);
 						this.plugin.settings.ignorePaths.splice(index, 1);
