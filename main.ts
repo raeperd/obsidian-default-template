@@ -177,6 +177,7 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 					new TAbstractFileSuggest(this.app, text.inputEl, (vault, inputLower) =>
 						vault.getAllLoadedFiles()
 							.filter((file): file is TFolder => file instanceof TFolder)
+							.filter(folder => !Object.keys(this.plugin.settings.folderTemplates).includes(folder.path) || folder.path === folderPath)
 							.filter(folder => folder.path.toLowerCase().includes(inputLower))
 					);
 				})
@@ -255,6 +256,7 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 						vault.getAllLoadedFiles()
 							.filter((file): file is TFolder => file instanceof TFolder)
 							.filter(folder => folder.path && folder.path !== '/')
+							.filter(folder => !this.plugin.settings.ignorePaths.includes(folder.path) || folder.path === ignorePath)
 							.filter(folder => folder.path.toLowerCase().includes(inputLower))
 					);
 				})
