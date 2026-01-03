@@ -82,54 +82,38 @@ export default class DefaultTemplatePlugin extends Plugin {
 	}
 }
 
-class FileSuggest extends AbstractInputSuggest<TFile> {
-	private inputEl: HTMLInputElement;
-
-	constructor(app: App, inputEl: HTMLInputElement) {
+abstract class PathSuggest<T extends TFile | TFolder> extends AbstractInputSuggest<T> {
+	constructor(app: App, private inputEl: HTMLInputElement) {
 		super(app, inputEl);
-		this.inputEl = inputEl;
 	}
 
-	getSuggestions(inputStr: string): TFile[] {
-		const inputLower = inputStr.toLowerCase();
-		return this.app.vault.getMarkdownFiles()
-			.filter(file => file.path.toLowerCase().includes(inputLower));
+	abstract getSuggestions(inputStr: string): T[];
+
+	renderSuggestion(item: T, el: HTMLElement): void {
+		el.createEl("div", { text: item.path });
 	}
 
-	renderSuggestion(file: TFile, el: HTMLElement): void {
-		el.createEl("div", { text: file.path });
-	}
-
-	selectSuggestion(file: TFile): void {
-		this.inputEl.value = file.path;
+	selectSuggestion(item: T): void {
+		this.inputEl.value = item.path;
 		this.inputEl.trigger('input');
 		this.close();
 	}
 }
 
-class FolderSuggest extends AbstractInputSuggest<TFolder> {
-	private inputEl: HTMLInputElement;
-
-	constructor(app: App, inputEl: HTMLInputElement) {
-		super(app, inputEl);
-		this.inputEl = inputEl;
+class FileSuggest extends PathSuggest<TFile> {
+	getSuggestions(inputStr: string): TFile[] {
+		const inputLower = inputStr.toLowerCase();
+		return this.app.vault.getMarkdownFiles()
+			.filter(file => file.path.toLowerCase().includes(inputLower));
 	}
+}
 
+class FolderSuggest extends PathSuggest<TFolder> {
 	getSuggestions(inputStr: string): TFolder[] {
 		const inputLower = inputStr.toLowerCase();
 		return this.app.vault.getAllLoadedFiles()
 			.filter((file): file is TFolder => file instanceof TFolder)
 			.filter(folder => folder.path.toLowerCase().includes(inputLower));
-	}
-
-	renderSuggestion(folder: TFolder, el: HTMLElement): void {
-		el.createEl("div", { text: folder.path });
-	}
-
-	selectSuggestion(folder: TFolder): void {
-		this.inputEl.value = folder.path;
-		this.inputEl.trigger('input');
-		this.close();
 	}
 }
 
