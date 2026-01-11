@@ -17,7 +17,10 @@ export default class DefaultTemplatePlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
-		this.registerEvent(this.app.vault.on('create', async (file) => {
+		
+		// Wait until layout is ready to avoid processing files during startup
+		this.app.workspace.onLayoutReady(() => {
+			this.registerEvent(this.app.vault.on('create', async (file) => {
 			if (!(file instanceof TFile) || file.extension !== 'md') return;
 
 			// Check if file path should be ignored (prefix matching)
@@ -80,7 +83,9 @@ export default class DefaultTemplatePlugin extends Plugin {
 				new Notice(`Default Template: Template file "${templateFile.path}" not found or cannot be read.`);
 			}
 		})
-		);
+			);
+		});
+		
 		this.addSettingTab(new DefaultTemplateSettingTab(this.app, this));
 	}
 

@@ -1,0 +1,1 @@
+Proejct template with {{date}}
