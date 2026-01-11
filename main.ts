@@ -17,8 +17,6 @@ export default class DefaultTemplatePlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
-		
-		// Wait until layout is ready to avoid processing files during startup
 		this.app.workspace.onLayoutReady(() => {
 			this.registerEvent(this.app.vault.on('create', async (file) => {
 			if (!(file instanceof TFile) || file.extension !== 'md') return;
