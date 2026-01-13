@@ -5,6 +5,8 @@
 
 Automatically apply your chosen template to every new note. No more manual template insertion—just create notes and get consistent structure instantly.
 
+**For minimalists:** You don't need the complexity of Templater just for default templates. This plugin does one thing and does it well—fast, simple, no bloat.
+
 ## Features
 
 - **Set once, forget forever** — Choose any template file, never manually insert again
