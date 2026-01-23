@@ -52,10 +52,7 @@ export default class DefaultTemplatePlugin extends Plugin {
 			};
 			
 			const templateFile = getTemplateFile(file.path);
-			if (!templateFile) {
-				new Notice('No template configured. Go to settings to select one.');
-				return;
-			}
+			if (!templateFile) return;
 			try {
 				// Read template content before calling process
 				const templateContent = await this.app.vault.read(templateFile);
