@@ -24,9 +24,11 @@ If the user does not specify the version type, ask before continuing.
    - It also creates the version commit and git tag.
 4. Push the version commit with `git push`.
 5. Push the tag with `git push origin <tag>`.
-6. Verify the GitHub release workflow started.
-   - Use `gh run list --workflow "Release Obsidian plugin" --limit 1`.
-   - If needed, inspect it with `gh run view <run-id>`.
+6. Verify the GitHub release workflow started for the new tag.
+   - Use `gh run list --workflow "Release Obsidian plugin" --event push --json databaseId,headBranch,status,conclusion,url`.
+   - Find the run whose `headBranch` is the new tag.
+   - If it has not appeared yet, wait briefly and check again.
+   - Inspect it with `gh run view <run-id>`.
 7. Report the new version, tag, and workflow URL.
 
 ## Safety checks
