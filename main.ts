@@ -109,7 +109,7 @@ class TAbstractFileSuggest<T extends TAbstractFile> extends AbstractInputSuggest
 	}
 
 	renderSuggestion(item: T, el: HTMLElement): void {
-		el.createEl("div", { text: item.path });
+		el.createDiv({ text: item.path });
 	}
 
 	selectSuggestion(item: T): void {
