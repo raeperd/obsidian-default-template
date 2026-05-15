@@ -158,6 +158,7 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 		// Display existing folder templates
 		const folderEntries = Object.entries(this.plugin.settings.folderTemplates);
 		for (const [folderPath, templatePath] of folderEntries) {
+			let currentFolderPath = folderPath;
 			new Setting(containerEl)
 				.setName(`Folder: ${folderPath}`)
 				.addText(text => {
@@ -165,13 +166,14 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 						.setValue(folderPath)
 						.onChange(async (newFolderPath) => {
 							const normalizedPath = normalizePath(newFolderPath);
-							if (normalizedPath !== folderPath) {
-								delete this.plugin.settings.folderTemplates[folderPath];
-								if (normalizedPath) {
-									this.plugin.settings.folderTemplates[normalizedPath] = templatePath;
-								}
-								await this.plugin.saveSettings();
+							if (normalizedPath === currentFolderPath) return;
+
+							delete this.plugin.settings.folderTemplates[currentFolderPath];
+							if (normalizedPath) {
+								this.plugin.settings.folderTemplates[normalizedPath] = templatePath;
 							}
+							currentFolderPath = normalizedPath;
+							await this.plugin.saveSettings();
 						});
 					const configuredFolders = Object.keys(this.plugin.settings.folderTemplates);
 					new TAbstractFileSuggest(this.app, text.inputEl, (vault, inputLower) =>
@@ -185,7 +187,7 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 					text.setPlaceholder('path/to/template.md')
 						.setValue(templatePath)
 						.onChange(async (value) => {
-							this.plugin.settings.folderTemplates[folderPath] = normalizePath(value);
+							this.plugin.settings.folderTemplates[currentFolderPath] = normalizePath(value);
 							await this.plugin.saveSettings();
 						});
 					new TAbstractFileSuggest(this.app, text.inputEl, (vault, inputLower) =>
