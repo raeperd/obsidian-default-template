@@ -1,4 +1,4 @@
-import { AbstractInputSuggest, App, Notice, Plugin, PluginSettingTab, Setting, TAbstractFile, TFile, TFolder, Vault, moment, normalizePath } from 'obsidian';
+import { App, Notice, Plugin, PluginSettingTab, Setting, TFile, moment, normalizePath } from 'obsidian';
 
 interface DefaultTemplateSettings {
 	defaultTemplate: string;
@@ -95,30 +95,6 @@ export default class DefaultTemplatePlugin extends Plugin {
 	}
 }
 
-class TAbstractFileSuggest<T extends TAbstractFile> extends AbstractInputSuggest<T> {
-	constructor(
-		app: App, 
-		private inputEl: HTMLInputElement,
-		private getSuggestionsFn: (vault: Vault, inputLower: string) => T[]
-	) {
-		super(app, inputEl);
-	}
-
-	getSuggestions(inputStr: string): T[] {
-		return this.getSuggestionsFn(this.app.vault, inputStr.toLowerCase());
-	}
-
-	renderSuggestion(item: T, el: HTMLElement): void {
-		el.createDiv({ text: item.path });
-	}
-
-	selectSuggestion(item: T): void {
-		this.inputEl.value = item.path;
-		this.inputEl.trigger('input');
-		this.close();
-	}
-}
-
 class DefaultTemplateSettingTab extends PluginSettingTab {
 	plugin: DefaultTemplatePlugin;
 
@@ -141,11 +117,6 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 						this.plugin.settings.defaultTemplate = normalizePath(value);
 						await this.plugin.saveSettings();
 					});
-				
-				new TAbstractFileSuggest(this.app, text.inputEl, (vault, inputLower) => 
-					vault.getMarkdownFiles()
-						.filter(file => file.path.toLowerCase().includes(inputLower))
-				);
 			});
 
 		new Setting(containerEl).setName('Folder templates').setHeading();
@@ -175,13 +146,6 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 							currentFolderPath = normalizedPath;
 							await this.plugin.saveSettings();
 						});
-					const configuredFolders = Object.keys(this.plugin.settings.folderTemplates);
-					new TAbstractFileSuggest(this.app, text.inputEl, (vault, inputLower) =>
-						vault.getAllLoadedFiles()
-							.filter((file): file is TFolder => file instanceof TFolder)
-							.filter(folder => !configuredFolders.includes(folder.path) || folder.path === folderPath)
-							.filter(folder => folder.path.toLowerCase().includes(inputLower))
-					);
 				})
 				.addText(text => {
 					text.setPlaceholder('path/to/template.md')
@@ -190,10 +154,6 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 							this.plugin.settings.folderTemplates[currentFolderPath] = normalizePath(value);
 							await this.plugin.saveSettings();
 						});
-					new TAbstractFileSuggest(this.app, text.inputEl, (vault, inputLower) =>
-						vault.getMarkdownFiles()
-							.filter(file => file.path.toLowerCase().includes(inputLower))
-					);
 				})
 				.addExtraButton(button => button
 					.setIcon('trash')
@@ -252,13 +212,6 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 								this.display();
 							}
 						});
-
-					new TAbstractFileSuggest(this.app, text.inputEl, (vault, inputLower) =>
-						vault.getAllLoadedFiles()
-							.filter((file): file is TFolder => file instanceof TFolder)
-							.filter(folder => folder.path && folder.path !== '/')
-							.filter(folder => folder.path.toLowerCase().includes(inputLower))
-					);
 				})
 				.addExtraButton(button => button
 					.setIcon('trash')
