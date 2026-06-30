@@ -12,6 +12,7 @@
 	"keywords": [],
 	"author": "raeperd",
 	"license": "MIT",
+	"packageManager": "pnpm@11.9.0",
 	"devDependencies": {
 		"@types/node": "^16.11.6",
 		"@typescript-eslint/eslint-plugin": "^8.50.0",
