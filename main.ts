@@ -12,8 +12,10 @@ const DEFAULT_SETTINGS: DefaultTemplateSettings = {
 	ignorePaths: []
 }
 
+const getMoment = moment as unknown as () => { format: (format: string) => string };
+
 export default class DefaultTemplatePlugin extends Plugin {
-	settings: DefaultTemplateSettings;
+	settings!: DefaultTemplateSettings;
 
 	async onload() {
 		await this.loadSettings();
@@ -65,10 +67,10 @@ export default class DefaultTemplatePlugin extends Plugin {
 					// Process template variables
 					const processedContent = templateContent
 						.replace(/\{\{date(?::([^}]+))?\}\}/g, (_, format) => {
-							return format ? moment().format(format) : moment().format('YYYY-MM-DD');
+							return getMoment().format(format ?? 'YYYY-MM-DD');
 						})
 						.replace(/\{\{time(?::([^}]+))?\}\}/g, (_, format) => {
-							return format ? moment().format(format) : moment().format('HH:mm');
+							return getMoment().format(format ?? 'HH:mm');
 						})
 						.replace(/\{\{title\}\}/g, file.basename);
 					
