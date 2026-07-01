@@ -18,8 +18,8 @@
 		"@typescript-eslint/eslint-plugin": "^8.50.0",
 		"@typescript-eslint/parser": "^8.50.0",
 		"esbuild": "0.17.3",
-		"eslint": "^9.39.2",
-		"eslint-plugin-obsidianmd": "^0.1.9",
+		"eslint": "^10.5.0",
+		"eslint-plugin-obsidianmd": "^0.3.0",
 		"obsidian": "latest",
 		"tslib": "2.4.0",
 		"typescript": "^5.9.3"
