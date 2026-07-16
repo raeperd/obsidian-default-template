@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Use Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v6.4.0
         with:
           node-version: "22.x"
 
@@ -62,7 +62,7 @@ jobs:
           echo "✓ All version checks passed"
 
       - name: Create release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@v3.0.1
         with:
           files: |
             main.js
