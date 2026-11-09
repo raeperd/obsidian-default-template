@@ -59,6 +59,16 @@ Assign different templates to specific folders. Notes in `Projects/` can use a p
 
 **Hierarchy fallback:** If `Projects/Work/ClientA/` has no template, it checks `Projects/Work/`, then `Projects/`, then falls back to default.
 
+**Wildcards:** `*` matches any part of one folder name, and `**` matches any number of folders.
+
+| Pattern | Matches |
+|---------|---------|
+| `Clients/*/People` | `Clients/Acme/People/`, not `Clients/Acme/Team/People/` |
+| `Clients/Acme*` | `Clients/Acme/`, `Clients/Acme Corp/` |
+| `**/People` | every folder named `People`, at any depth |
+
+When several entries match, the one matching the deepest folder wins, the same as hierarchy fallback. `Clients/**` counts as matching `Clients/`, so `Clients/Acme` still wins inside `Clients/Acme/`. At the same depth, an exact path wins over a pattern. Other glob syntax such as `?` or `{a,b}` is not supported.
+
 ## Ignore Paths
 
 Exclude folders where templates shouldn't be applied. Useful for scratch notes, temporary files, or areas where templates would be intrusive.

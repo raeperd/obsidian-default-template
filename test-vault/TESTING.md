@@ -21,6 +21,9 @@ Configure folder templates:
 - `Projects` → `Templates/Project.md`
 - `Projects/ClientA` → `Templates/Client.md`
 - `Journal` → `Templates/Journal.md`
+- `Projects/*/People` → `Templates/Folder.md`
+- `Journal/**` → `Templates/Ignored.md`
+- `Journal/2026` → `Templates/Journal.md`
 
 ## Test Scenarios
 
@@ -29,3 +32,6 @@ Configure folder templates:
 3. Create file in `Projects/ClientB/` → "Projects template with {{date}}" (inherits)
 4. Create file in `Projects/ClientA/` → "ClientA template with {{date}}" (override)
 5. Create file in `Journal/` → "Journal template with {{date}}"
+6. Create file in `Projects/ClientB/People/` → Folder template (wildcard match)
+7. Create file in `Projects/ClientA/People/` → Folder template (wildcard at a deeper level wins over `Projects/ClientA`)
+8. Create file in `Journal/2026/01/` → Journal template (`Journal/2026` is deeper than `Journal/**`)
