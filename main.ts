@@ -35,10 +35,16 @@ export default class DefaultTemplatePlugin extends Plugin {
 			// Find template file with folder hierarchy fallback
 			const getTemplateFile = (filePath: string): TFile | undefined => {
 				const parts = filePath.split('/').slice(0, -1); // remove filename
-				// Try folder templates from most specific to least specific
+				// Try folder templates from most specific to least specific; exact paths win over patterns.
+				// `*` matches within one folder name and `**/` matches any number of folders.
+				// A trailing `/**` is dropped because a folder template already covers its subfolders.
 				while (parts.length > 0) {
 					const folderPath = parts.join('/');
-					const templatePath = this.settings.folderTemplates[folderPath];
+					const templatePath = this.settings.folderTemplates[folderPath] ||
+						Object.entries(this.settings.folderTemplates).find(([pattern]) => new RegExp('^' + pattern
+							.replace(/\/\*\*$/, '')
+							.replace(/[.+?^${}()|[\]\\]/g, '\\$&')
+							.replace(/\*\*\/|\*/g, token => token === '*' ? '[^/]*' : '(.*/)?') + '$').test(folderPath))?.[1];
 					if (templatePath) {
 						const templateFile = this.app.vault.getAbstractFileByPath(templatePath);
 						if (templateFile instanceof TFile) return templateFile;
@@ -153,7 +159,7 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 		new Setting(containerEl).setName('Folder templates').setHeading();
 
 		containerEl.createEl('p', {
-			text: 'Override the default template for specific folders',
+			text: 'Override the default template for specific folders. Use * for any folder name and ** for any number of folders',
 			cls: 'setting-item-description'
 		});
 
