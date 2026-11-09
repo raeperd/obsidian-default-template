@@ -25,7 +25,7 @@ updates:
         patterns:
           - "eslint"
           - "eslint-*"
-          - "@typescript-eslint/*"
+          - "typescript-eslint"
       build-tools:
         patterns:
           - "@types/node"

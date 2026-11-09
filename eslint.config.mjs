@@ -1,38 +1,19 @@
-import tsparser from "@typescript-eslint/parser";
-import tseslint from "@typescript-eslint/eslint-plugin";
+import { defineConfig } from "eslint/config";
 import obsidianmd from "eslint-plugin-obsidianmd";
 
-const obsidianRecommendedRules = Object.assign(
-  {},
-  ...obsidianmd.configs.recommended.map((config) =>
-    Object.fromEntries(
-      Object.entries(config.rules ?? {}).filter(([ruleName]) =>
-        ruleName.startsWith("obsidianmd/"),
-      ),
-    ),
-  ),
-);
-
-export default [
+export default defineConfig([
   {
-    ignores: ["node_modules/", "main.js", "eslint.config.mjs", "test-vault/"],
+    ignores: ["node_modules/", "main.js", "test-vault/"],
   },
+  ...obsidianmd.configs.recommended,
   {
-    files: ["**/*.ts"],
     languageOptions: {
-      parser: tsparser,
       parserOptions: {
-        project: "./tsconfig.json",
+        projectService: {
+          allowDefaultProject: ["*.mjs"],
+        },
+        tsconfigRootDir: import.meta.dirname,
       },
     },
-    plugins: {
-      "@typescript-eslint": tseslint,
-      obsidianmd: obsidianmd,
-    },
-    rules: {
-      ...tseslint.configs.recommended.rules,
-      "@typescript-eslint/no-floating-promises": "error",
-      ...obsidianRecommendedRules,
-    },
   },
-];
+]);

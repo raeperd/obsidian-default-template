@@ -72,10 +72,10 @@ export default class DefaultTemplatePlugin extends Plugin {
 					
 					// Process template variables
 					const processedContent = templateContent
-						.replace(/\{\{date(?::([^}]+))?\}\}/g, (_, format) => {
+						.replace(/\{\{date(?::([^}]+))?\}\}/g, (_, format: string | undefined) => {
 							return getMoment().format(format ?? 'YYYY-MM-DD');
 						})
-						.replace(/\{\{time(?::([^}]+))?\}\}/g, (_, format) => {
+						.replace(/\{\{time(?::([^}]+))?\}\}/g, (_, format: string | undefined) => {
 							return getMoment().format(format ?? 'HH:mm');
 						})
 						.replace(/\{\{title\}\}/g, file.basename);
@@ -95,7 +95,7 @@ export default class DefaultTemplatePlugin extends Plugin {
 	onunload() {}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<DefaultTemplateSettings>);
 	}
 
 	async saveSettings() {
