@@ -1,4 +1,4 @@
-import { AbstractInputSuggest, App, Notice, Plugin, PluginSettingTab, Setting, TAbstractFile, TFile, TFolder, Vault, moment, normalizePath } from 'obsidian';
+import { AbstractInputSuggest, App, Notice, Plugin, PluginSettingTab, Setting, SettingDefinitionItem, TAbstractFile, TFile, TFolder, Vault, moment, normalizePath } from 'obsidian';
 
 interface DefaultTemplateSettings {
 	defaultTemplate: string;
@@ -135,164 +135,135 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
-	display(): void {
-		const { containerEl } = this;
-		containerEl.empty();
-
-		new Setting(containerEl)
-			.setName('Default template file')
-			.setDesc('Select a template file to apply to new empty notes')
-			.addText(text => {
-				text.setPlaceholder('path/to/template.md')
-					.setValue(this.plugin.settings.defaultTemplate)
-					.onChange(async (value) => {
-						this.plugin.settings.defaultTemplate = normalizePath(value);
-						await this.plugin.saveSettings();
-					});
-				
-				new TAbstractFileSuggest(this.app, text.inputEl, (vault, inputLower) => 
-					vault.getMarkdownFiles()
-						.filter(file => file.path.toLowerCase().includes(inputLower))
-				);
-			});
-
-		new Setting(containerEl).setName('Folder templates').setHeading();
-
-		containerEl.createEl('p', {
-			text: 'Override the default template for specific folders. Use * for any folder name and ** for any number of folders',
-			cls: 'setting-item-description'
-		});
-
-		// Display existing folder templates
-		const folderEntries = Object.entries(this.plugin.settings.folderTemplates);
-		for (const [folderPath, templatePath] of folderEntries) {
-			let currentFolderPath = folderPath;
-			new Setting(containerEl)
-				.setName(`Folder: ${folderPath}`)
-				.addText(text => {
-					text.setPlaceholder('Folder/path')
-						.setValue(folderPath)
-						.onChange(async (newFolderPath) => {
-							const normalizedPath = normalizePath(newFolderPath);
-							if (normalizedPath === currentFolderPath) return;
-
-							delete this.plugin.settings.folderTemplates[currentFolderPath];
-							if (normalizedPath) {
-								this.plugin.settings.folderTemplates[normalizedPath] = templatePath;
-							}
-							currentFolderPath = normalizedPath;
-							await this.plugin.saveSettings();
-						});
-					const configuredFolders = Object.keys(this.plugin.settings.folderTemplates);
-					new TAbstractFileSuggest(this.app, text.inputEl, (vault, inputLower) =>
-						vault.getAllLoadedFiles()
-							.filter((file): file is TFolder => file instanceof TFolder)
-							.filter(folder => !configuredFolders.includes(folder.path) || folder.path === folderPath)
-							.filter(folder => folder.path.toLowerCase().includes(inputLower))
-					);
-				})
-				.addText(text => {
-					text.setPlaceholder('path/to/template.md')
-						.setValue(templatePath)
-						.onChange(async (value) => {
-							this.plugin.settings.folderTemplates[currentFolderPath] = normalizePath(value);
-							await this.plugin.saveSettings();
-						});
-					new TAbstractFileSuggest(this.app, text.inputEl, (vault, inputLower) =>
-						vault.getMarkdownFiles()
-							.filter(file => file.path.toLowerCase().includes(inputLower))
-					);
-				})
-				.addExtraButton(button => button
-					.setIcon('trash')
-					.setTooltip('Delete folder template')
-					.onClick(async () => {
-						delete this.plugin.settings.folderTemplates[folderPath];
-						await this.plugin.saveSettings();
-						this.display();
-					})
-				);
-		}
-
-		// Add folder template button
-		new Setting(containerEl)
-			.addButton(button => button
-				.setButtonText('Add folder template')
-				.setCta()
-				.onClick(async () => {
-					this.plugin.settings.folderTemplates[''] = '';
-					await this.plugin.saveSettings();
-					this.display();
-				})
-			);
-
-		new Setting(containerEl).setName('Ignore paths').setHeading();
-
-		containerEl.createEl('p', {
-			text: 'Folders where templates will not be applied',
-			cls: 'setting-item-description'
-		});
-
-		// Display existing ignore paths
-		for (const ignorePath of this.plugin.settings.ignorePaths) {
-			new Setting(containerEl)
-				.setName(ignorePath || '')
-				.addText(text => {
-					text.setPlaceholder('Folder/path')
-						.setValue(ignorePath)
-						.onChange(async (newPath) => {
-							const normalizedPath = normalizePath(newPath);
-							const index = this.plugin.settings.ignorePaths.indexOf(ignorePath);
-
-							if (normalizedPath) {
-								// Check for duplicates
-								if (!this.plugin.settings.ignorePaths.includes(normalizedPath) ||
-									this.plugin.settings.ignorePaths[index] === normalizedPath) {
-									this.plugin.settings.ignorePaths[index] = normalizedPath;
-									await this.plugin.saveSettings();
-								} else {
-									new Notice('Path already ignored');
-								}
-							} else {
-								// Remove if empty
-								this.plugin.settings.ignorePaths.splice(index, 1);
-								await this.plugin.saveSettings();
-								this.display();
-							}
-						});
-
-					new TAbstractFileSuggest(this.app, text.inputEl, (vault, inputLower) =>
-						vault.getAllLoadedFiles()
-							.filter((file): file is TFolder => file instanceof TFolder)
-							.filter(folder => folder.path && folder.path !== '/')
-							.filter(folder => folder.path.toLowerCase().includes(inputLower))
-					);
-				})
-				.addExtraButton(button => button
-					.setIcon('trash')
-					.setTooltip('Remove')
-					.onClick(async () => {
-						const index = this.plugin.settings.ignorePaths.indexOf(ignorePath);
-						this.plugin.settings.ignorePaths.splice(index, 1);
-						await this.plugin.saveSettings();
-						this.display();
-					})
-				);
-		}
-
-		// Add ignore path button
-		new Setting(containerEl)
-			.addButton(button => button
-				.setButtonText('Add ignore path')
-				.setCta()
-				.onClick(async () => {
-					// Don't add if empty string already exists
-					if (!this.plugin.settings.ignorePaths.includes('')) {
-						this.plugin.settings.ignorePaths.push('');
-						await this.plugin.saveSettings();
-						this.display();
+	getSettingDefinitions(): SettingDefinitionItem[] {
+		const settings = this.plugin.settings;
+		return [
+			{
+				name: 'Default template file',
+				desc: 'Select a template file to apply to new empty notes',
+				control: {
+					type: 'file',
+					key: 'defaultTemplate',
+					placeholder: 'path/to/template.md',
+					filter: file => file.extension === 'md'
+				}
+			},
+			{
+				type: 'list',
+				heading: 'Folder templates',
+				emptyState: 'Override the default template for specific folders. Use * for any folder name and ** for any number of folders',
+				addItem: {
+					name: 'Add folder template',
+					action: () => {
+						settings.folderTemplates[''] = '';
+						void this.plugin.saveSettings();
+						this.update();
 					}
-				})
-			);
+				},
+				onDelete: index => {
+					delete settings.folderTemplates[Object.keys(settings.folderTemplates)[index]];
+					void this.plugin.saveSettings();
+					this.update();
+				},
+				items: Object.entries(settings.folderTemplates).map(([folderPath, templatePath]) => ({
+					name: `Folder: ${folderPath}`,
+					desc: 'Use * for any folder name and ** for any number of folders',
+					render: (setting: Setting) => {
+						let currentFolderPath = folderPath;
+						setting
+							.addText(text => {
+								text.setPlaceholder('Folder/path')
+									.setValue(folderPath)
+									.onChange(async (newFolderPath) => {
+										const normalizedPath = normalizePath(newFolderPath);
+										if (normalizedPath === currentFolderPath) return;
+
+										delete settings.folderTemplates[currentFolderPath];
+										if (normalizedPath) {
+											settings.folderTemplates[normalizedPath] = templatePath;
+										}
+										currentFolderPath = normalizedPath;
+										await this.plugin.saveSettings();
+									});
+								const configuredFolders = Object.keys(settings.folderTemplates);
+								new TAbstractFileSuggest(this.app, text.inputEl, (vault, inputLower) =>
+									vault.getAllLoadedFiles()
+										.filter((file): file is TFolder => file instanceof TFolder)
+										.filter(folder => !configuredFolders.includes(folder.path) || folder.path === folderPath)
+										.filter(folder => folder.path.toLowerCase().includes(inputLower))
+								);
+							})
+							.addText(text => {
+								text.setPlaceholder('path/to/template.md')
+									.setValue(templatePath)
+									.onChange(async (value) => {
+										settings.folderTemplates[currentFolderPath] = normalizePath(value);
+										await this.plugin.saveSettings();
+									});
+								new TAbstractFileSuggest(this.app, text.inputEl, (vault, inputLower) =>
+									vault.getMarkdownFiles()
+										.filter(file => file.path.toLowerCase().includes(inputLower))
+								);
+							});
+					}
+				}))
+			},
+			{
+				type: 'list',
+				heading: 'Ignore paths',
+				emptyState: 'Folders where templates will not be applied',
+				addItem: {
+					name: 'Add ignore path',
+					action: () => {
+						// Don't add if empty string already exists
+						if (settings.ignorePaths.includes('')) return;
+						settings.ignorePaths.push('');
+						void this.plugin.saveSettings();
+						this.update();
+					}
+				},
+				onDelete: index => {
+					settings.ignorePaths.splice(index, 1);
+					void this.plugin.saveSettings();
+					this.update();
+				},
+				items: settings.ignorePaths.map(ignorePath => ({
+					name: ignorePath,
+					render: (setting: Setting) => {
+						setting.addText(text => {
+							text.setPlaceholder('Folder/path')
+								.setValue(ignorePath)
+								.onChange(async (newPath) => {
+									const normalizedPath = normalizePath(newPath);
+									const index = settings.ignorePaths.indexOf(ignorePath);
+
+									if (normalizedPath) {
+										// Check for duplicates
+										if (!settings.ignorePaths.includes(normalizedPath) ||
+											settings.ignorePaths[index] === normalizedPath) {
+											settings.ignorePaths[index] = normalizedPath;
+											await this.plugin.saveSettings();
+										} else {
+											new Notice('Path already ignored');
+										}
+									} else {
+										// Remove if empty
+										settings.ignorePaths.splice(index, 1);
+										await this.plugin.saveSettings();
+										this.update();
+									}
+								});
+
+							new TAbstractFileSuggest(this.app, text.inputEl, (vault, inputLower) =>
+								vault.getAllLoadedFiles()
+									.filter((file): file is TFolder => file instanceof TFolder)
+									.filter(folder => folder.path && folder.path !== '/')
+									.filter(folder => folder.path.toLowerCase().includes(inputLower))
+							);
+						});
+					}
+				}))
+			}
+		];
 	}
 }
