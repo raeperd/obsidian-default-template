@@ -167,12 +167,11 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 				},
 				items: Object.entries(settings.folderTemplates).map(([folderPath, templatePath]) => ({
 					name: `Folder: ${folderPath}`,
-					desc: 'Use * for any folder name and ** for any number of folders',
 					render: (setting: Setting) => {
 						let currentFolderPath = folderPath;
 						setting
 							.addText(text => {
-								text.setPlaceholder('Folder/path')
+								text.setPlaceholder('Folder/path, * or **')
 									.setValue(folderPath)
 									.onChange(async (newFolderPath) => {
 										const normalizedPath = normalizePath(newFolderPath);
