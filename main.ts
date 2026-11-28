@@ -135,6 +135,12 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
+	// Rebuild the definitions from the edited settings so the tab shows them when reopened
+	hide(): void {
+		super.hide();
+		this.update();
+	}
+
 	getSettingDefinitions(): SettingDefinitionItem[] {
 		const settings = this.plugin.settings;
 		return [
@@ -177,11 +183,14 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 										const normalizedPath = normalizePath(newFolderPath);
 										if (normalizedPath === currentFolderPath) return;
 
-										delete settings.folderTemplates[currentFolderPath];
-										if (normalizedPath) {
-											settings.folderTemplates[normalizedPath] = templatePath;
+										// Rename the key in place so the row indexes passed to onDelete stay in order
+										const renamed: Record<string, string> = {};
+										for (const [path, template] of Object.entries(settings.folderTemplates)) {
+											renamed[path === currentFolderPath ? normalizedPath : path] = template;
 										}
+										settings.folderTemplates = renamed;
 										currentFolderPath = normalizedPath;
+										setting.setName(`Folder: ${normalizedPath}`);
 										await this.plugin.saveSettings();
 									});
 								const configuredFolders = Object.keys(settings.folderTemplates);
@@ -226,7 +235,7 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 					void this.plugin.saveSettings();
 					this.update();
 				},
-				items: settings.ignorePaths.map(ignorePath => ({
+				items: settings.ignorePaths.map((ignorePath, index) => ({
 					name: ignorePath,
 					render: (setting: Setting) => {
 						setting.addText(text => {
@@ -234,23 +243,19 @@ class DefaultTemplateSettingTab extends PluginSettingTab {
 								.setValue(ignorePath)
 								.onChange(async (newPath) => {
 									const normalizedPath = normalizePath(newPath);
-									const index = settings.ignorePaths.indexOf(ignorePath);
-
-									if (normalizedPath) {
-										// Check for duplicates
-										if (!settings.ignorePaths.includes(normalizedPath) ||
-											settings.ignorePaths[index] === normalizedPath) {
-											settings.ignorePaths[index] = normalizedPath;
-											await this.plugin.saveSettings();
-										} else {
-											new Notice('Path already ignored');
-										}
-									} else {
-										// Remove if empty
+									if (!normalizedPath) {
 										settings.ignorePaths.splice(index, 1);
 										await this.plugin.saveSettings();
 										this.update();
+										return;
 									}
+									if (settings.ignorePaths.some((path, i) => path === normalizedPath && i !== index)) {
+										new Notice('Path already ignored');
+										return;
+									}
+									settings.ignorePaths[index] = normalizedPath;
+									setting.setName(normalizedPath);
+									await this.plugin.saveSettings();
 								});
 
 							new TAbstractFileSuggest(this.app, text.inputEl, (vault, inputLower) =>
